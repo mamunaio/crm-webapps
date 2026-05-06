@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNotifications, type NotificationType } from "@/lib/notifications";
-import { useNavigate } from "@tanstack/react-router";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<NotificationType, React.ComponentType<{ className?: string }>> = {
@@ -82,7 +82,7 @@ function ManualReminderDialog({ onCreate }: { onCreate: (n: { title: string; des
 export function NotificationBell() {
   const { notifications, unreadCount, markRead, markAllRead, remove, addManual } = useNotifications();
   const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -132,7 +132,7 @@ export function NotificationBell() {
                       markRead(n.id);
                       if (n.link) {
                         setOpen(false);
-                        navigate({ to: n.link });
+                        router.push(n.link);
                       }
                     }}
                   >

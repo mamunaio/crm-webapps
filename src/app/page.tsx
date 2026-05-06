@@ -1,4 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -26,26 +28,26 @@ import {
   SortableContext, arrayMove, rectSortingStrategy, verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 
-export const Route = createFileRoute("/")({
-  component: () => (
+export default function DashboardPage() {
+  return (
     <RequireAuth>
       <Dashboard />
     </RequireAuth>
-  ),
-  head: () => ({ meta: [{ title: "Dashboard — Pinnacle CRM" }] }),
-});
+  );
+}
 
 const KPI_IDS = ["leads", "clients", "deals", "invoices", "tasks"] as const;
 const WIDGET_IDS = ["goal", "revenue", "activity", "latest_invoices", "tasks_due"] as const;
 
 function Dashboard() {
   const { user } = useAuth();
-  const uid = user!.id;
+  const uid = user?.id;
   const { t } = useTranslation();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard", uid],
+    enabled: !!uid,
     queryFn: async () => {
       const [contacts, leads, deals, invoices, tasks] = await Promise.all([
         supabase.from("contacts").select("id,status,created_at,name").order("created_at", { ascending: false }),
@@ -244,9 +246,9 @@ function Dashboard() {
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <p className="text-muted-foreground">{t("pages.dashboard.welcome")}</p>
         <div className="flex gap-2">
-          <Button asChild variant="outline" size="sm"><Link to="/leads"><Plus className="h-4 w-4 mr-1" /> {t("pages.dashboard.addLead")}</Link></Button>
-          <Button asChild variant="outline" size="sm"><Link to="/invoices"><Plus className="h-4 w-4 mr-1" /> {t("pages.dashboard.newInvoice")}</Link></Button>
-          <Button asChild size="sm"><Link to="/tasks"><Plus className="h-4 w-4 mr-1" /> {t("pages.dashboard.addTask")}</Link></Button>
+          <Button asChild variant="outline" size="sm"><Link href="/leads"><Plus className="h-4 w-4 mr-1" /> {t("pages.dashboard.addLead")}</Link></Button>
+          <Button asChild variant="outline" size="sm"><Link href="/invoices"><Plus className="h-4 w-4 mr-1" /> {t("pages.dashboard.newInvoice")}</Link></Button>
+          <Button asChild size="sm"><Link href="/tasks"><Plus className="h-4 w-4 mr-1" /> {t("pages.dashboard.addTask")}</Link></Button>
         </div>
       </div>
 

@@ -1,5 +1,6 @@
+"use client";
+
 import { useTranslation } from "react-i18next";
-import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { RequireAuth } from "@/components/RequireAuth";
@@ -29,10 +30,13 @@ import { toCSV, downloadCSV } from "@/lib/csv";
 import { Plus, ArrowRight, Download, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/leads")({
-  component: () => <RequireAuth><LeadsPage /></RequireAuth>,
-  head: () => ({ meta: [{ title: "Leads — Pinnacle CRM" }] }),
-});
+export default function LeadsPageWrapper() {
+  return (
+    <RequireAuth>
+      <LeadsPage />
+    </RequireAuth>
+  );
+}
 
 type Lead = {
   id: string; name: string; company: string | null; email: string | null;
@@ -55,7 +59,8 @@ function LeadsPage() {
   const [selected, setSelected] = useState<Lead | null>(null);
 
   const { data: leads = [] } = useQuery({
-    queryKey: ["leads", user!.id],
+    queryKey: ["leads", user?.id],
+    enabled: !!user?.id,
     queryFn: async () => {
       const { data, error } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
       if (error) throw error;
@@ -63,7 +68,8 @@ function LeadsPage() {
     },
   });
   const { data: members = [] } = useQuery({
-    queryKey: ["team_members", user!.id],
+    queryKey: ["team_members", user?.id],
+    enabled: !!user?.id,
     queryFn: async () => {
       const { data, error } = await supabase.from("team_members").select("id,name").order("name");
       if (error) throw error;
@@ -71,7 +77,8 @@ function LeadsPage() {
     },
   });
   const { data: activities = [] } = useQuery({
-    queryKey: ["activities", "lead", user!.id],
+    queryKey: ["activities", "lead", user?.id],
+    enabled: !!user?.id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("activities")
@@ -93,7 +100,7 @@ function LeadsPage() {
         if (error) throw error;
       } else {
         const { error } = await supabase.from("leads").insert({
-          user_id: user!.id, name: l.name!, company: l.company, email: l.email,
+          user_id: user?.id, name: l.name!, company: l.company, email: l.email,
           source: l.source ?? "website", status: l.status ?? "new",
           assigned_to: l.assigned_to, notes: l.notes,
         });
@@ -123,12 +130,12 @@ function LeadsPage() {
     mutationFn: async (lead: Lead) => {
       // Create contact as client
       const { error: cErr } = await supabase.from("contacts").insert({
-        user_id: user!.id, name: lead.name, company: lead.company, email: lead.email, status: "client",
+        user_id: user?.id, name: lead.name, company: lead.company, email: lead.email, status: "client",
       });
       if (cErr) throw cErr;
       // Create discovery deal
       const { error: dErr } = await supabase.from("deals").insert({
-        user_id: user!.id, title: `${lead.company ?? lead.name} — opportunity`,
+        user_id: user?.id, title: `${lead.company ?? lead.name} — opportunity`,
         client_name: lead.company ?? lead.name, value: 0, stage: "discovery",
         assigned_to: lead.assigned_to,
       });

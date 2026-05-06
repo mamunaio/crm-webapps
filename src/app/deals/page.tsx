@@ -1,5 +1,6 @@
+"use client";
+
 import { useTranslation } from "react-i18next";
-import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { RequireAuth } from "@/components/RequireAuth";
@@ -27,10 +28,13 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 
-export const Route = createFileRoute("/deals")({
-  component: () => <RequireAuth><DealsPage /></RequireAuth>,
-  head: () => ({ meta: [{ title: "Deals — Pinnacle CRM" }] }),
-});
+export default function DealsPageWrapper() {
+  return (
+    <RequireAuth>
+      <DealsPage />
+    </RequireAuth>
+  );
+}
 
 type Stage = "discovery" | "proposal" | "negotiation" | "won" | "lost";
 type Deal = {
@@ -58,7 +62,8 @@ function DealsPage() {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const { data: deals = [] } = useQuery({
-    queryKey: ["deals", user!.id],
+    queryKey: ["deals", user?.id],
+    enabled: !!user?.id,
     queryFn: async () => {
       const { data, error } = await supabase.from("deals").select("*").order("created_at", { ascending: false });
       if (error) throw error;
@@ -66,14 +71,16 @@ function DealsPage() {
     },
   });
   const { data: members = [] } = useQuery({
-    queryKey: ["team_members", user!.id],
+    queryKey: ["team_members", user?.id],
+    enabled: !!user?.id,
     queryFn: async () => {
       const { data } = await supabase.from("team_members").select("id,name").order("name");
       return (data ?? []) as Member[];
     },
   });
   const { data: activities = [] } = useQuery({
-    queryKey: ["activities", "deal", user!.id],
+    queryKey: ["activities", "deal", user?.id],
+    enabled: !!user?.id,
     queryFn: async () => {
       const { data } = await supabase
         .from("activities")
@@ -100,7 +107,7 @@ function DealsPage() {
         if (error) throw error;
       } else {
         const { error } = await supabase.from("deals").insert({
-          user_id: user!.id, title: d.title!, client_name: d.client_name!,
+          user_id: user?.id, title: d.title!, client_name: d.client_name!,
           value: d.value ?? 0, stage: d.stage ?? "discovery",
           due_date: d.due_date, assigned_to: d.assigned_to,
         });
@@ -128,19 +135,19 @@ function DealsPage() {
       const { error } = await supabase.from("deals").update({ stage }).eq("id", id);
       if (error) throw error;
       await supabase.from("activities").insert({
-        user_id: user!.id, entity_type: "deal" as any, entity_id: id,
+        user_id: user?.id, entity_type: "deal" as any, entity_id: id,
         type: "status_change", content: `Stage changed: ${prevStage} → ${stage}`,
       });
     },
     onMutate: async ({ id, stage }) => {
       await qc.cancelQueries({ queryKey: ["deals"] });
-      const prev = qc.getQueryData<Deal[]>(["deals", user!.id]);
-      qc.setQueryData<Deal[]>(["deals", user!.id], (old) =>
+      const prev = qc.getQueryData<Deal[]>(["deals", user?.id]);
+      qc.setQueryData<Deal[]>(["deals", user?.id], (old) =>
         (old ?? []).map((d) => (d.id === id ? { ...d, stage } : d)),
       );
       return { prev };
     },
-    onError: (_e, _v, ctx) => ctx?.prev && qc.setQueryData(["deals", user!.id], ctx.prev),
+    onError: (_e, _v, ctx) => ctx?.prev && qc.setQueryData(["deals", user?.id], ctx.prev),
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["deals"] });
       qc.invalidateQueries({ queryKey: ["activities", "deal"] });

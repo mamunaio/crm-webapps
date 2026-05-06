@@ -1,5 +1,6 @@
+"use client";
+
 import { useTranslation } from "react-i18next";
-import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 import { RequireAuth } from "@/components/RequireAuth";
@@ -28,10 +29,13 @@ import { followUpSuggestion, lookupCompany } from "@/lib/smart";
 import { Plus, Search, Trash2, Pencil, Download, Link as LinkIcon, Sparkles, Mail } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/contacts")({
-  component: () => <RequireAuth><ContactsPage /></RequireAuth>,
-  head: () => ({ meta: [{ title: "Contacts — Pinnacle CRM" }] }),
-});
+export default function ContactsPageWrapper() {
+  return (
+    <RequireAuth>
+      <ContactsPage />
+    </RequireAuth>
+  );
+}
 
 type Contact = {
   id: string;
@@ -54,7 +58,8 @@ function ContactsPage() {
   const [selected, setSelected] = useState<Contact | null>(null);
 
   const { data: contacts = [] } = useQuery({
-    queryKey: ["contacts", user!.id],
+    queryKey: ["contacts", user?.id],
+    enabled: !!user?.id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("contacts").select("*").order("created_at", { ascending: false });
@@ -72,7 +77,7 @@ function ContactsPage() {
         if (error) throw error;
       } else {
         const { error } = await supabase.from("contacts").insert({
-          user_id: user!.id, name: c.name!, company: c.company, email: c.email, phone: c.phone, status: c.status ?? "lead",
+          user_id: user?.id, name: c.name!, company: c.company, email: c.email, phone: c.phone, status: c.status ?? "lead",
         });
         if (error) throw error;
       }
@@ -289,6 +294,7 @@ function ContactDialog({
 function SmartSuggestion({ contactId, status }: { contactId: string; status: string }) {
   const { data: lastTouch } = useQuery({
     queryKey: ["activities", "contact", contactId, "last"],
+    enabled: !!contactId,
     queryFn: async () => {
       const { data } = await supabase
         .from("activities")
@@ -317,4 +323,3 @@ function SmartSuggestion({ contactId, status }: { contactId: string; status: str
     </div>
   );
 }
-

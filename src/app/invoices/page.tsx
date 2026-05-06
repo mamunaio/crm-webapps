@@ -1,5 +1,6 @@
+"use client";
+
 import { useTranslation } from "react-i18next";
-import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { RequireAuth } from "@/components/RequireAuth";
@@ -29,10 +30,13 @@ import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-export const Route = createFileRoute("/invoices")({
-  component: () => <RequireAuth><InvoicesPage /></RequireAuth>,
-  head: () => ({ meta: [{ title: "Invoices — Pinnacle CRM" }] }),
-});
+export default function InvoicesPageWrapper() {
+  return (
+    <RequireAuth>
+      <InvoicesPage />
+    </RequireAuth>
+  );
+}
 
 type Item = { id?: string; description: string; quantity: number; unit_price: number; amount: number; position: number };
 type Invoice = {
@@ -50,7 +54,8 @@ function InvoicesPage() {
   const [preview, setPreview] = useState<Invoice | null>(null);
 
   const { data: invoices = [] } = useQuery({
-    queryKey: ["invoices", user!.id],
+    queryKey: ["invoices", user?.id],
+    enabled: !!user?.id,
     queryFn: async () => {
       const { data, error } = await supabase.from("invoices").select("*").order("issue_date", { ascending: false });
       if (error) throw error;
@@ -65,7 +70,7 @@ function InvoicesPage() {
   const create = useMutation({
     mutationFn: async ({ inv, items }: { inv: Partial<Invoice>; items: Item[] }) => {
       const { data, error } = await supabase.from("invoices").insert({
-        user_id: user!.id,
+        user_id: user?.id,
         invoice_number: inv.invoice_number!, client_name: inv.client_name!,
         client_email: inv.client_email, issue_date: inv.issue_date!, due_date: inv.due_date!,
         status: inv.status ?? "draft", subtotal: inv.subtotal!, tax_rate: inv.tax_rate!,
@@ -223,6 +228,7 @@ function InvoicesPage() {
 function InvoicePreview({ invoice, onDownload }: { invoice: Invoice; onDownload: () => void }) {
   const { data: items = [] } = useQuery({
     queryKey: ["invoice_items", invoice.id],
+    enabled: !!invoice.id,
     queryFn: async () => {
       const { data } = await supabase.from("invoice_items").select("*").eq("invoice_id", invoice.id).order("position");
       return (data ?? []).map((it: any) => ({ ...it, quantity: Number(it.quantity), unit_price: Number(it.unit_price), amount: Number(it.amount) }));
