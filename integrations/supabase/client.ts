@@ -27,5 +27,6 @@ try {
   console.warn('Failed to initialize Supabase client during build:', error);
 }
 
-export const supabase = supabaseInstance;
+// Restore proper TypeScript type to prevent implicit 'any' errors
+export const supabase = supabaseInstance as ReturnType<typeof createClient<Database>>;
 

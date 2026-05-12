@@ -26,4 +26,5 @@ try {
   console.warn('Failed to initialize Supabase Admin client during build:', error);
 }
 
-export const supabaseAdmin = supabaseAdminInstance;
+// Restore proper TypeScript type
+export const supabaseAdmin = supabaseAdminInstance as ReturnType<typeof createClient<Database>>;
