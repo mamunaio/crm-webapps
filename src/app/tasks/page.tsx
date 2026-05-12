@@ -92,7 +92,7 @@ function TasksPage() {
         if (error) throw error;
       } else {
         const { error } = await supabase.from("tasks").insert({
-          user_id: user?.id,
+          user_id: user!.id,
           ...payload,
         });
         if (error) throw error;

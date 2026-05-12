@@ -77,7 +77,7 @@ function ContactsPage() {
         if (error) throw error;
       } else {
         const { error } = await supabase.from("contacts").insert({
-          user_id: user?.id, name: c.name!, company: c.company, email: c.email, phone: c.phone, status: c.status ?? "lead",
+          user_id: user!.id, name: c.name!, company: c.company, email: c.email, phone: c.phone, status: c.status ?? "lead",
         });
         if (error) throw error;
       }

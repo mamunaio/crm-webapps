@@ -70,7 +70,7 @@ function InvoicesPage() {
   const create = useMutation({
     mutationFn: async ({ inv, items }: { inv: Partial<Invoice>; items: Item[] }) => {
       const { data, error } = await supabase.from("invoices").insert({
-        user_id: user?.id,
+        user_id: user!.id,
         invoice_number: inv.invoice_number!, client_name: inv.client_name!,
         client_email: inv.client_email, issue_date: inv.issue_date!, due_date: inv.due_date!,
         status: inv.status ?? "draft", subtotal: inv.subtotal!, tax_rate: inv.tax_rate!,

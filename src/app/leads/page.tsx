@@ -100,7 +100,7 @@ function LeadsPage() {
         if (error) throw error;
       } else {
         const { error } = await supabase.from("leads").insert({
-          user_id: user?.id, name: l.name!, company: l.company, email: l.email,
+          user_id: user!.id, name: l.name!, company: l.company, email: l.email,
           source: l.source ?? "website", status: l.status ?? "new",
           assigned_to: l.assigned_to, notes: l.notes,
         });
@@ -130,12 +130,12 @@ function LeadsPage() {
     mutationFn: async (lead: Lead) => {
       // Create contact as client
       const { error: cErr } = await supabase.from("contacts").insert({
-        user_id: user?.id, name: lead.name, company: lead.company, email: lead.email, status: "client",
+        user_id: user!.id, name: lead.name, company: lead.company, email: lead.email, status: "client",
       });
       if (cErr) throw cErr;
       // Create discovery deal
       const { error: dErr } = await supabase.from("deals").insert({
-        user_id: user?.id, title: `${lead.company ?? lead.name} — opportunity`,
+        user_id: user!.id, title: `${lead.company ?? lead.name} — opportunity`,
         client_name: lead.company ?? lead.name, value: 0, stage: "discovery",
         assigned_to: lead.assigned_to,
       });

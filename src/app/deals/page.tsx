@@ -107,7 +107,7 @@ function DealsPage() {
         if (error) throw error;
       } else {
         const { error } = await supabase.from("deals").insert({
-          user_id: user?.id, title: d.title!, client_name: d.client_name!,
+          user_id: user!.id, title: d.title!, client_name: d.client_name!,
           value: d.value ?? 0, stage: d.stage ?? "discovery",
           due_date: d.due_date, assigned_to: d.assigned_to,
         });
@@ -135,7 +135,7 @@ function DealsPage() {
       const { error } = await supabase.from("deals").update({ stage }).eq("id", id);
       if (error) throw error;
       await supabase.from("activities").insert({
-        user_id: user?.id, entity_type: "deal" as any, entity_id: id,
+        user_id: user!.id, entity_type: "deal" as any, entity_id: id,
         type: "status_change", content: `Stage changed: ${prevStage} → ${stage}`,
       });
     },

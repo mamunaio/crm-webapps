@@ -47,7 +47,7 @@ function SettingsPage() {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", user?.id)
+        .eq("id", user!.id)
         .single();
       
       if (error && error.code !== "PGRST116") throw error;
@@ -70,7 +70,7 @@ function SettingsPage() {
       const { error } = await supabase
         .from("profiles")
         .upsert({
-          id: user?.id,
+          id: user!.id,
           ...newData,
         });
       if (error) throw error;

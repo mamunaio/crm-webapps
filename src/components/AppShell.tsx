@@ -48,7 +48,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       const { data } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", user?.id)
+        .eq("id", user!.id)
         .single();
       return data;
     },
