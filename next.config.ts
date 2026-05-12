@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Ensure we are using standard standalone output for Vercel if needed
+  output: 'standalone',
 };
 
 export default nextConfig;
