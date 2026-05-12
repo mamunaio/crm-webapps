@@ -5,8 +5,14 @@ import type { Database } from './types';
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
-// Only initialize if we have the required variables to avoid crashing the build
-export const supabase = (SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY) 
+// Robust check for real values (not empty and not the string "undefined")
+const isConfigValid = 
+  SUPABASE_URL && 
+  SUPABASE_URL !== "undefined" && 
+  SUPABASE_PUBLISHABLE_KEY && 
+  SUPABASE_PUBLISHABLE_KEY !== "undefined";
+
+export const supabase = isConfigValid
   ? createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       auth: {
         storage: typeof window !== 'undefined' ? localStorage : undefined,
@@ -14,11 +20,11 @@ export const supabase = (SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY)
         autoRefreshToken: true,
       }
     })
-  : {} as any; // Fallback for build time
+  : {} as any;
 
-if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+if (!isConfigValid) {
   if (typeof window !== 'undefined') {
-    console.warn('Supabase URL or Key is missing from environment variables.');
+    console.warn('Supabase URL or Key is missing or invalid in environment variables.');
   }
 }
 
