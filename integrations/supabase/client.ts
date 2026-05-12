@@ -5,26 +5,27 @@ import type { Database } from './types';
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
-// Robust check for real values (not empty and not the string "undefined")
-const isConfigValid = 
-  SUPABASE_URL && 
-  SUPABASE_URL !== "undefined" && 
-  SUPABASE_PUBLISHABLE_KEY && 
-  SUPABASE_PUBLISHABLE_KEY !== "undefined";
+let supabaseInstance: any = {};
 
-export const supabase = isConfigValid
-  ? createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+try {
+  if (SUPABASE_URL && SUPABASE_URL !== "undefined" && SUPABASE_URL !== "null" &&
+      SUPABASE_PUBLISHABLE_KEY && SUPABASE_PUBLISHABLE_KEY !== "undefined" && SUPABASE_PUBLISHABLE_KEY !== "null") {
+    
+    supabaseInstance = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       auth: {
         storage: typeof window !== 'undefined' ? localStorage : undefined,
         persistSession: true,
         autoRefreshToken: true,
       }
-    })
-  : {} as any;
-
-if (!isConfigValid) {
-  if (typeof window !== 'undefined') {
-    console.warn('Supabase URL or Key is missing or invalid in environment variables.');
+    });
+  } else {
+    if (typeof window !== 'undefined') {
+      console.warn('Supabase URL or Key is missing or invalid in environment variables.');
+    }
   }
+} catch (error) {
+  console.warn('Failed to initialize Supabase client during build:', error);
 }
+
+export const supabase = supabaseInstance;
 

@@ -8,18 +8,22 @@ import type { Database } from './types';
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
-const isConfigValid = 
-  SUPABASE_URL && 
-  SUPABASE_URL !== "undefined" && 
-  SUPABASE_SERVICE_ROLE_KEY && 
-  SUPABASE_SERVICE_ROLE_KEY !== "undefined";
+let supabaseAdminInstance: any = {};
 
-export const supabaseAdmin = isConfigValid
-  ? createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+try {
+  if (SUPABASE_URL && SUPABASE_URL !== "undefined" && SUPABASE_URL !== "null" &&
+      SUPABASE_SERVICE_ROLE_KEY && SUPABASE_SERVICE_ROLE_KEY !== "undefined" && SUPABASE_SERVICE_ROLE_KEY !== "null") {
+      
+    supabaseAdminInstance = createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: {
         storage: undefined,
         persistSession: false,
         autoRefreshToken: false,
       }
-    })
-  : {} as any; // Fallback for build time
+    });
+  }
+} catch (error) {
+  console.warn('Failed to initialize Supabase Admin client during build:', error);
+}
+
+export const supabaseAdmin = supabaseAdminInstance;
