@@ -9,12 +9,11 @@ function createSupabaseClient() {
   const SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-    console.error('Supabase URL:', SUPABASE_URL);
-    console.error('Supabase Key:', SUPABASE_PUBLISHABLE_KEY);
-    throw new Error(
-      'Missing Supabase environment variables. Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set in your .env file.'
-    );
+    console.error('Supabase configuration missing!');
+    throw new Error('Missing Supabase environment variables.');
   }
+
+  console.log('Initializing Supabase with URL:', SUPABASE_URL);
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     auth: {
