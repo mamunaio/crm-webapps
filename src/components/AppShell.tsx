@@ -22,6 +22,8 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationBell } from "@/components/NotificationBell";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const items = [
   { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard, exact: true },
@@ -39,17 +41,37 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const { signOut, user } = useAuth();
   const { t } = useTranslation();
 
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user?.id)
+        .single();
+      return data;
+    },
+  });
+
+  const agencyName = profile?.agency_name || "Pinnacle CRM";
+  const logoUrl = profile?.logo_url;
+
   const isActive = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
 
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
       <div className="flex items-center gap-2 px-6 py-5 border-b border-sidebar-border">
-        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-accent">
-          <Briefcase className="h-5 w-5 text-accent-foreground" />
-        </div>
+        {logoUrl ? (
+          <img src={logoUrl} alt={agencyName} className="h-9 w-9 rounded-md object-contain bg-white" />
+        ) : (
+          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-accent">
+            <Briefcase className="h-5 w-5 text-accent-foreground" />
+          </div>
+        )}
         <div>
-          <div className="text-base font-bold tracking-tight">Pinnacle CRM</div>
+          <div className="text-base font-bold tracking-tight">{agencyName}</div>
           <div className="text-[11px] text-sidebar-foreground/60 uppercase tracking-wider">Agency Edition</div>
         </div>
       </div>
